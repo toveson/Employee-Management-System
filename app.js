@@ -60,7 +60,7 @@ function start() {
                 break;
             case 'Update depmartment, role or employee':
                 // function to choose what to update
-                whatToView();
+                whatToUpdate();
                 break;
         }
     });
@@ -121,8 +121,10 @@ function addDepartment() {
         });
     });
 };
+
 // Add roles
-function addRole() {
+async function addRole() {
+    var depts = await viewDepartment();
     inquirer.prompt([
         {
             type: 'input',
@@ -133,28 +135,9 @@ function addRole() {
                     return console.log("A role is required.");
                 }
                 return true;
-            },
-
-
-
-
-                // here for tutor session
-                // can I chain questions?
-                    // need a title, salary, and department_id
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            }
+        },
+        {
             type: 'input',
             name: 'salary',
             message: 'What is their salary?',
@@ -164,13 +147,27 @@ function addRole() {
                 }
                 return true;
             }
+        },
+        {
+            type: 'list',
+            name: 'department_id',
+            message: 'What deparment so they work in?',
+            choices: depts,
+            validate: function (answer) {
+                if (answer.length < 1) {
+                    return console.log("A department is required.");
+                }
+                return true;
+            }
+        }
     ]).then(function (addRole) {
-                connection.query('INSERT INTO role (title, salary, department_id) VALUES (?);', [addRole.role], function (err, res) {
-                    if (err) throw err;
-                    console.log('---Added role---');
-                    start();
-                });
-            });
+        console.log(addRole);
+        connection.query('INSERT INTO role (title, salary, department_id) VALUES (?);', [addRole.role], function (err, res) {
+            if (err) throw err;
+            console.log('---Added role---');
+            start();
+        });
+    });
 };
 // Add employees
 
@@ -188,23 +185,52 @@ function whatToView() {
                 'View employee'
             ]
         }
-    ]).then(function (userChoice) {
+    ]).then(async function (userChoice) {
         switch (userChoice.viewChoice) {
             case 'View depmartment':
                 // function to view departments
+                var depts = await viewDepartment();
+                console.table(depts);
+                start();
                 break;
             case 'View role':
                 // function to view roles
+                viewRole();
+                start();
                 break;
             case 'View employee':
                 // function to view employees
+                viewEmployee();
+                start();
                 break;
         }
     });
 }
+
+
 // View department
+async function viewDepartment() {
+    return new Promise((res, rej) => {
+        connection.query('SELECT name, id AS value FROM department', function (err, results, fields) {
+            if (err) throw err;
+            res(results);
+        })
+    })
+}
 // View roles
+function viewRole() {
+    connection.query('SELECT * FROM role', function (err, results, fields) {
+        if (err) throw err;
+        console.table(results);
+    })
+}
 // View employees
+function viewEmployee() {
+    connection.query('SELECT * FROM employee', function (err, results, fields) {
+        if (err) throw err;
+        console.table(results);
+    })
+}
 
 // what to update
 function whatToUpdate() {
