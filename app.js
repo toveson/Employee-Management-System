@@ -195,12 +195,14 @@ function whatToView() {
                 break;
             case 'View role':
                 // function to view roles
-                viewRole();
+                var roles = await viewRole();
+                console.table(roles);
                 start();
                 break;
             case 'View employee':
                 // function to view employees
-                viewEmployee();
+                var employees = await viewEmployee();
+                console.table(employees);
                 start();
                 break;
         }
@@ -214,23 +216,27 @@ async function viewDepartment() {
         connection.query('SELECT name, id AS value FROM department', function (err, results, fields) {
             if (err) throw err;
             res(results);
-        })
-    })
-}
+        });
+    });
+};
 // View roles
-function viewRole() {
-    connection.query('SELECT * FROM role', function (err, results, fields) {
-        if (err) throw err;
-        console.table(results);
-    })
-}
+async function viewRole() {
+    return new Promise((res, rej) => {
+        connection.query('SELECT name, id AS value FROM role', function (err, results, fields) {
+            if (err) throw err;
+            res(results);
+        });
+    });
+};
 // View employees
-function viewEmployee() {
-    connection.query('SELECT * FROM employee', function (err, results, fields) {
-        if (err) throw err;
-        console.table(results);
-    })
-}
+async function viewEmployee() {
+    return new Promise((res, rej) => {
+        connection.query('SELECT name, id AS value FROM employee', function (err, results, fields) {
+            if (err) throw err;
+            res(results);
+        });
+    });
+};
 
 // what to update
 function whatToUpdate() {
