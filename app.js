@@ -22,6 +22,13 @@ connection.connect(function (err) {
     start();
 });
 
+// end application
+function endConnection() {
+    console.log('===================')
+    console.log('------Goodbye------')
+    connection.end();
+    process.exit();
+}
 
 // CLI stuff
 function start() {
@@ -35,20 +42,22 @@ function start() {
                 'Add depmartment, role or employee',
 
                 // view
+                'View depmartment, role or employee',
                 // bonus View employess by manager
                 // View total salary of all department members (one total not each person in the department)
-                'View depmartment, role or employee',
 
                 // update
+                'Update depmartment, role or employee',
                 // bonus Update employee managers
-                'Update depmartment, role or employee'
 
                 // bonus
                 // delete department, role employee
+
+                // Exit application
+                'Exit application'
             ]
         }
     ]).then(function (userChoice) {
-        console.log(userChoice)
         switch (userChoice.firstChoice) {
             case 'Add depmartment, role or employee':
                 // function to choose what to add
@@ -61,6 +70,9 @@ function start() {
             case 'Update depmartment, role or employee':
                 // function to choose what to update
                 whatToUpdate();
+                break;
+            case 'Exit application':
+                endConnection();
                 break;
         }
     });
@@ -94,6 +106,7 @@ function whatToAdd() {
                 break;
             case 'Add employee':
                 // function to Add employees
+                addEmployee();
                 break;
         }
     });
@@ -162,7 +175,7 @@ async function addRole() {
         }
     ]).then(function (addRole) {
         console.log(addRole);
-        connection.query('INSERT INTO role (title, salary, department_id) VALUES (?);', [addRole.role], function (err, res) {
+        connection.query('INSERT INTO role (title, salary, department_id) VALUES (?,?,?);', [addRole.role, addRole.salary, addRole.department_id], function (err, res) {
             if (err) throw err;
             console.log('---Added role---');
             start();
@@ -170,6 +183,52 @@ async function addRole() {
     });
 };
 // Add employees
+async function addEmployee() {
+    var roles = await viewRole();
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'first_name',
+            message: 'What is their fist name?',
+            validate: function (answer) {
+                if (answer.length < 1) {
+                    return console.log("A name is required.");
+                }
+                return true;
+            }
+        },
+        {
+            type: 'input',
+            name: 'last_name',
+            message: 'What is their last name?',
+            validate: function (answer) {
+                if (answer.length < 1) {
+                    return console.log("A name is required.");
+                }
+                return true;
+            }
+        },
+        {
+            type: 'list',
+            name: 'role_id',
+            message: 'What Department do they work in?',
+            choices: roles,
+            validate: function (answer) {
+                if (answer.length < 1) {
+                    return console.log("A department is required.");
+                }
+                return true;
+            }
+        }
+    ]).then(function (addEmployee) {
+        console.log(addEmployee);
+        connection.query('INSERT INTO employee (first_name, last_name, role_id) VALUES (?,?,?);', [addEmployee.first_name, addEmployee.last_name, addEmployee.role_id], function (err, res) {
+            if (err) throw err;
+            console.log('---Added Employee---');
+            start();
+        });
+    });
+};
 
 // what to view
 function whatToView() {
@@ -196,6 +255,7 @@ function whatToView() {
             case 'View role':
                 // function to view roles
                 var roles = await viewRole();
+                console.log(roles);
                 console.table(roles);
                 start();
                 break;
@@ -222,16 +282,17 @@ async function viewDepartment() {
 // View roles
 async function viewRole() {
     return new Promise((res, rej) => {
-        connection.query('SELECT name, id AS value FROM role', function (err, results, fields) {
+        connection.query('SELECT title, salary, department_id, id AS value FROM role', function (err, results, fields) {
             if (err) throw err;
             res(results);
         });
     });
 };
+
 // View employees
 async function viewEmployee() {
     return new Promise((res, rej) => {
-        connection.query('SELECT name, id AS value FROM employee', function (err, results, fields) {
+        connection.query('SELECT first_name, last_name, role_id, id AS value FROM employee', function (err, results, fields) {
             if (err) throw err;
             res(results);
         });
@@ -247,28 +308,34 @@ function whatToUpdate() {
             message: 'What do you want to Update?',
             choices: [
                 // Update
-                'Update depmartment',
-                'Update role',
-                'Update employee'
+                'Update employee role'
+                // bonus
+                // Update employee managers
             ]
         }
     ]).then(function (userChoice) {
         switch (userChoice.updateChoice) {
-            case 'Update depmartment':
-                // function to Update departments
-                break;
-            case 'Update role':
-                // function to Update roles
-                break;
-            case 'Update employee':
+            case 'Update employee role':
                 // function to Update employees
+                updateEmployeesRole();
                 break;
+
+            // bouns
+            // case 'Update employee managers':
+                // function to update an employee's manager
         }
     });
 }
-// update department
-// update roles
-// update employees
+
+// update employee role
+function updateEmployeesRole() {
+    var employee = viewEmployee();
+    console.table(employee)
+
+    // inquirer.prompt([
+
+    // ])
+}
 
 // bonus stuff
 
