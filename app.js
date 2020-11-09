@@ -34,7 +34,7 @@ function endConnection() {
 function start() {
     inquirer.prompt([
         {
-            type: 'list',
+            type: 'rawlist',
             name: 'firstChoice',
             message: 'What do you want to do?',
             choices: [
@@ -84,7 +84,7 @@ function start() {
 function whatToAdd() {
     inquirer.prompt([
         {
-            type: 'list',
+            type: 'rawlist',
             name: 'addChoice',
             message: 'What do you want to Add?',
             choices: [
@@ -162,7 +162,7 @@ async function addRole() {
             }
         },
         {
-            type: 'list',
+            type: 'rawlist',
             name: 'department_id',
             message: 'What deparment so they work in?',
             choices: depts,
@@ -182,9 +182,10 @@ async function addRole() {
         });
     });
 };
+
 // Add employees
 async function addEmployee() {
-    var roles = await viewRole();
+    var roles = await viewRoleTitle();
     inquirer.prompt([
         {
             type: 'input',
@@ -209,7 +210,7 @@ async function addEmployee() {
             }
         },
         {
-            type: 'list',
+            type: 'rawlist',
             name: 'role_id',
             message: 'What Department do they work in?',
             choices: roles,
@@ -234,7 +235,7 @@ async function addEmployee() {
 function whatToView() {
     inquirer.prompt([
         {
-            type: 'list',
+            type: 'rawlist',
             name: 'viewChoice',
             message: 'What do you want to View?',
             choices: [
@@ -269,7 +270,6 @@ function whatToView() {
     });
 }
 
-
 // View department
 async function viewDepartment() {
     return new Promise((res, rej) => {
@@ -279,10 +279,21 @@ async function viewDepartment() {
         });
     });
 };
+
 // View roles
 async function viewRole() {
     return new Promise((res, rej) => {
         connection.query('SELECT title, salary, department_id, id AS value FROM role', function (err, results, fields) {
+            if (err) throw err;
+            res(results);
+        });
+    });
+};
+
+// used for creating an employee
+async function viewRoleTitle() {
+    return new Promise((res, rej) => {
+        connection.query('SELECT title AS name, id AS value FROM role', function (err, results, fields) {
             if (err) throw err;
             res(results);
         });
@@ -303,7 +314,7 @@ async function viewEmployee() {
 function whatToUpdate() {
     inquirer.prompt([
         {
-            type: 'list',
+            type: 'rawlist',
             name: 'updateChoice',
             message: 'What do you want to Update?',
             choices: [
@@ -325,17 +336,35 @@ function whatToUpdate() {
                 // function to update an employee's manager
         }
     });
-}
+};
 
 // update employee role
-function updateEmployeesRole() {
-    var employee = viewEmployee();
-    console.table(employee)
+async function updateEmployeesRole() {
+    var employees = await viewEmployee();
+    var roles = await viewRole();
 
-    // inquirer.prompt([
-
-    // ])
-}
+    inquirer.prompt([
+        {
+            type: 'rawlist',
+            name: 'updateRole',
+            message: 'Which employee would you like to update',
+            choices: employees
+        },
+        {
+            type: 'rawlist',
+            name: 'newRole',
+            message: 'Which role would you like to update them to?',
+            choices: roles
+        }
+    ]).then(function (updateEmployee) {
+        console.log(updateEmployee);
+        connection.query('UPDATE employee SET role_id=? WHERE id=?', [updateEmployee.updateRole, updateEmployee.newRole], function (err, res) {
+            if (err) throw err;
+            console.log('---Updateed Employee---');
+            start();
+        });
+    });
+};
 
 // bonus stuff
 
