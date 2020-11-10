@@ -222,7 +222,7 @@ async function addEmployee() {
             }
         }
     ]).then(function (addEmployee) {
-        console.log(addEmployee);
+        // console.log(addEmployee);
         connection.query('INSERT INTO employee (first_name, last_name, role_id) VALUES (?,?,?);', [addEmployee.first_name, addEmployee.last_name, addEmployee.role_id], function (err, res) {
             if (err) throw err;
             console.log('---Added Employee---');
@@ -256,7 +256,6 @@ function whatToView() {
             case 'View role':
                 // function to view roles
                 var roles = await viewRole();
-                console.log(roles);
                 console.table(roles);
                 start();
                 break;
@@ -310,6 +309,16 @@ async function viewEmployee() {
     });
 };
 
+// view managers
+// async function viewManagers() {
+//     return new Promise((res, rej) => {
+//         connection.query('SELECT DISTINCT CONCAT(manager.first_name,', ', manager.last_name, ', ',rm.title) AS name, manager.id AS value FROM employee e LEFT JOIN employee manager ON e.manager_id=manager.id LEFT JOIN role rm ON manager.role_id=rm.id;', function (err, results, fields) {
+//             if (err) throw err;
+//             res(results);
+//         });
+//     });
+// };
+
 // what to update
 function whatToUpdate() {
     inquirer.prompt([
@@ -339,7 +348,7 @@ function whatToUpdate() {
 };
 
 // update employee role
-async function updateEmployeesRole() {
+async function updateEmployeesRole() {clearImmediate
     var employees = await viewEmployee();
     var roles = await viewRole();
 
@@ -357,7 +366,7 @@ async function updateEmployeesRole() {
             choices: roles
         }
     ]).then(function (updateEmployee) {
-        console.log(updateEmployee);
+        // console.log(updateEmployee);
         connection.query('UPDATE employee SET role_id=? WHERE id=?', [updateEmployee.updateRole, updateEmployee.newRole], function (err, res) {
             if (err) throw err;
             console.log('---Updateed Employee---');
